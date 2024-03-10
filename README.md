@@ -1,2 +1,2 @@
-# reaxis-endeavor
-Reaxis Endeavor is a more targeted approach to Reaxis.
+# Reaxis Endeavor
+Reaxis is a solution to the predatory business models employed by corporations that provide practice questions to medical students. Ever-increasing prices for these resources serve as a financial barrier for students. In response, Reaxis was created to be a completely free option for practice questions, flashcards, diagrams, and simulations. Currently, Reaxis is more of a proof-of-concept to be able to integrate all four of these domains into one app. Each one will first be developed in isolation, then incorporated into Reaxis Alpha. **Reaxis Endeavor** is designed to bring to life the first element: practice questions.
