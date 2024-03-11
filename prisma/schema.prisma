@@ -12,3 +12,24 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+model Question {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  stem         String
+  choices      choiceType[]
+  summary      String
+  explanation  String
+  type         QuestionType
+  correct_keys Int[]
+}
+
+type choiceType {
+  key         Int
+  content     String
+  explanation String?
+}
+
+enum QuestionType {
+  SINGLE_BEST_ANSWER
+  MULTIPLE_SELECTION
+}
