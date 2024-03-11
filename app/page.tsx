@@ -1,10 +1,9 @@
-import { Navbar } from './components/Navbar';
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <>
-      <Navbar />
-      <main className="p-4">Hello world</main>
-    </>
+    <main>
+      <Link href="/questions">Questions</Link>
+    </main>
   );
 }
