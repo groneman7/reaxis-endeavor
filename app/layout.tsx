@@ -21,7 +21,7 @@ export default function RootLayout({
       <body>
         <Navbar />
         <AntdRegistry>
-          <div className="p-4">{children}</div>
+          <div className="p-4 flex justify-center">{children}</div>
         </AntdRegistry>
       </body>
     </html>
