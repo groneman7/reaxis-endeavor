@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import { Button, Checkbox, Flex, Form, Input, Modal } from 'antd';
+import { FaTrash } from 'react-icons/fa6';
 
 const MIN_RECOMMENDED_CHOICES: number = 4;
 
@@ -36,7 +37,6 @@ export default function NewQuestionPage() {
   function validate(data: any) {
     if (correctKeys.length !== 1) {
       // Do not allow submission with more or less that 1 correct answer on SINGLE_BEST_ANSWER types.
-      // Hard rejection.
       setModalTitle('Please review correct answers');
       setModalMessage(
         'Exactly one correct answer choice must be indicated for single best answer questions.'
@@ -98,7 +98,7 @@ export default function NewQuestionPage() {
                   <Flex
                     key={key}
                     align="center"
-                    gap="small">
+                    gap={12}>
                     <Form.Item>
                       <Checkbox
                         onChange={({ target }) => handleCheckbox(target.checked, key)}
@@ -106,6 +106,8 @@ export default function NewQuestionPage() {
                     </Form.Item>
                     <Form.Item
                       {...restField}
+                      className="flex-1"
+                      hasFeedback
                       name={[name, 'content']}
                       rules={[
                         {
@@ -117,6 +119,8 @@ export default function NewQuestionPage() {
                     </Form.Item>
                     <Form.Item
                       {...restField}
+                      className="flex-1"
+                      hasFeedback
                       name={[name, 'explanation']}
                       rules={[
                         {
@@ -125,30 +129,44 @@ export default function NewQuestionPage() {
                           message: 'Consider adding an explanation.',
                         },
                       ]}>
-                      <Input />
+                      <Input placeholder="Explanation" />
+                    </Form.Item>
+                    <Form.Item>
+                      <Button
+                        danger
+                        icon={<FaTrash />}
+                        onClick={() => remove(name)}
+                        shape="circle"
+                      />
                     </Form.Item>
                   </Flex>
                 ))}
-                <Form.Item>
-                  <Button onClick={() => add()}>Add choice</Button>
+                <Form.Item className="flex justify-center">
+                  <Button
+                    className="items-self-center"
+                    onClick={() => add()}>
+                    Add choice
+                  </Button>
                 </Form.Item>
               </>
             )}
           </Form.List>
         </Form.Item>
         <Form.Item
+          hasFeedback
           label="Summary"
           name="summary"
           rules={[
             {
               required: true,
               warningOnly: true,
-              message: 'Consider adding an summary.',
+              message: 'Consider adding a summary.',
             },
           ]}>
           <Input.TextArea />
         </Form.Item>
         <Form.Item
+          hasFeedback
           label="Explanation"
           name="explanation"
           rules={[
