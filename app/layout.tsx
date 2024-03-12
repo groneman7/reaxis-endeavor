@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { ConfigProvider } from 'antd';
 import { Navbar } from './components/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -21,7 +22,13 @@ export default function RootLayout({
       <body>
         <Navbar />
         <AntdRegistry>
-          <div className="p-4 flex justify-center">{children}</div>
+          <ConfigProvider theme={{
+            token: {
+              fontFamily: 'Lato'
+            }
+          }}>
+            <div className="p-4 flex justify-center">{children}</div>
+          </ConfigProvider>
         </AntdRegistry>
       </body>
     </html>
