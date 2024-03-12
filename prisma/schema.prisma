@@ -16,14 +16,13 @@ model Question {
   choices      choiceType[]
   summary      String
   explanation  String
-  type         QuestionType
+  type         QuestionType @default(SINGLE_BEST_ANSWER)
   correct_keys Int[]
 
   @@map("questions")
 }
 
 type choiceType {
-  key         Int
   content     String
   explanation String?
 }
