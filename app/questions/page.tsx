@@ -1,18 +1,36 @@
+'use client';
+import axios from 'axios';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button } from 'antd';
-const dummyQuestions: any[] = [];
+import { Button, Flex } from 'antd';
 
 export default function QuestionsPage() {
-  const questions = [...dummyQuestions];
-  return (
-    <>
-      <Link href="/questions/new">Add new question</Link>
-      <Button>Test button</Button>
-      {questions.length > 1 ? (
-        questions.map((q) => <div key={q?.key}>{q?.stem}</div>)
-      ) : (
-        <div>No questions found</div>
-      )}
-    </>
-  );
+    const [questionList, setQuestionList] = useState<any[]>([]);
+
+    const fetchData = useCallback(async () => {
+        const { data } = await axios({
+            method: 'GET',
+            url: 'http://localhost:3000/api/questions',
+        });
+        setQuestionList(data);
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    return (
+        <>
+            <Flex
+                gap={12}
+                vertical>
+                <Link href="/questions/new">Add new question</Link>
+                {questionList.length > 1 ? (
+                    questionList.map((q) => <div key={q.id}>{q?.stem}</div>)
+                ) : (
+                    <div>No questions found</div>
+                )}
+            </Flex>
+        </>
+    );
 }
