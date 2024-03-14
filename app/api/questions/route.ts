@@ -28,10 +28,18 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-    const allQuestions = await prisma.question.findMany();
-    // console.log(allQuestions);
-    if (!allQuestions) {
+    const id = request.nextUrl.searchParams.get('id');
+    if (!id) {
+        const allQuestions = await prisma.question.findMany();
+        if (!allQuestions) {
+            return NextResponse.json({ status: 404 });
+        }
+        return NextResponse.json(allQuestions, { status: 200 });
+    }
+    const question = await prisma.question.findUnique({ where: { id: id } });
+
+    if (!question) {
         return NextResponse.json({ status: 404 });
     }
-    return NextResponse.json(allQuestions, { status: 200 });
+    return NextResponse.json(question, { status: 200 });
 }
