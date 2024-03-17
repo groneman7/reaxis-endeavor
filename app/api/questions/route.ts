@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(allQuestions, { status: 200 });
     }
     const question = await prisma.question.findUnique({ where: { id: id } });
-
+    if (id ==='new') return;
     if (!question) {
         return NextResponse.json({ status: 404 });
     }

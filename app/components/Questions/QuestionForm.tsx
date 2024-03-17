@@ -1,104 +1,86 @@
 'use client';
 import axios from 'axios';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button, Checkbox, Flex, Form, Input, Modal, message } from 'antd';
 import { FaTrash } from 'react-icons/fa6';
 
 const MIN_RECOMMENDED_CHOICES: number = 4;
 
 type QuestionFormProps = {
-    questionId?: string;
-    isNew?: boolean;
+    questionId: string;
 };
 
-export default function QuestionForm({ questionId, isNew }: QuestionFormProps) {
+export default function QuestionForm({ questionId }: QuestionFormProps) {
     const [questionForm] = Form.useForm();
-    const [correctKeys, setCorrectKeys] = useState<number[]>([]);
-    const minChoiceBypassed = useRef(false);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
-    const [modalTitle, setModalTitle] = useState<string>('');
-    const [modalMessage, setModalMessage] = useState<string>('');
+    const [modalMessage, setModalMessage] = useState('')
     const [messageApi, contextHolder] = message.useMessage();
 
-    function handleCheckbox(isChecked: boolean, key: number) {
-        if (isChecked) {
-            if (correctKeys.findIndex((k) => k === key) === -1) {
-                setCorrectKeys([...correctKeys, key]);
-            }
+    async function handleFinish() {
+      setModalOpen(false);
+      const data = questionForm.getFieldsValue(true)
+      const correctKeys: number[] = []
+      data.choices.forEach((choice: any, i: number) => {
+        if (choice.isChecked) {
+          correctKeys.push(i)
+        }
+      })
+      const refactoredChoices = data.choices.map(choice => {
+        delete choice.isChecked;
+        return choice;
+      })
+      console.log('test')
+      // messageApi.open({
+      //     key: 'FORM_SUBMITTED',
+      //     type: 'loading',
+      //     content: 'Loading...',
+      // });
+      // const response = await axios({
+      //     method: 'post',
+      //     url: 'http://localhost:3000/api/questions',
+      //     data: { ...data, choices: refactoredChoices, correct_keys: correctKeys, type: 'SINGLE_BEST_ANSWER' },
+      // });
+
+      // if (response.status === 201) {
+      //     messageApi.open({
+      //         key: 'FORM_SUBMITTED',
+      //         type: 'success',
+      //         content: 'Question added.',
+      //     });
+      // }
+    }
+
+    function validate() {
+        if (questionForm.getFieldValue('choices')!.length < MIN_RECOMMENDED_CHOICES) {
+          // Soft rejection. Prompt user to have at least minimum number of choices.
+          setModalMessage('It is recommended to have at least four answer choices. Would you like to continue?')
+          setModalOpen(true)
         } else {
-            setCorrectKeys([...correctKeys].filter((k) => k !== key));
-        }
-    }
-
-    async function handleFinish(finalData: any) {
-        messageApi.open({
-            key: 'FORM_SUBMITTED',
-            type: 'loading',
-            content: 'Loading...',
-        });
-        const response = await axios({
-            method: 'post',
-            url: 'http://localhost:3000/api/questions',
-            data: { ...finalData },
-        });
-        // console.log(response);
-        if (response.status === 201) {
-            messageApi.open({
-                key: 'FORM_SUBMITTED',
-                type: 'success',
-                content: 'Question added.',
-            });
-        }
-    }
-
-    const test = Form.useWatch('choices', questionForm);
-    console.log(test);
-
-    // if (!isNew && questionId && questionId !== '') {
-    //   // Prepopulate the form with the existing question.
-    //   questionForm.setFieldsValue({...question})
-    // }
-
-    function validate(data: any) {
-        if (correctKeys.length !== 1) {
-            // Do not allow submission with more or less that 1 correct answer on SINGLE_BEST_ANSWER types.
-            setModalTitle('Please review correct answers');
-            setModalMessage(
-                'Exactly one correct answer choice must be indicated for single best answer questions.'
-            );
-            setModalOpen(true);
-            return;
-        }
-
-        if (data.choices.length < 1) {
-            // Do not allow submission with no answer choices.
-            return;
-        }
-        if (data.choices.length < MIN_RECOMMENDED_CHOICES && !minChoiceBypassed.current) {
-            // Soft rejection. Prompt user to have at least minimum number of choices.
-            console.log('Bypassing min number');
-            minChoiceBypassed.current = true;
-            return;
-        }
-
-        handleFinish({ ...data, correct_keys: correctKeys, type: 'SINGLE_BEST_ANSWER' });
+            const test = questionForm.getFieldsError(['summary', 'explanation'])
+            let test1 = false
+            test.forEach((item) => {
+              console.log(item)
+              if (item.warnings.length > 0) {
+                test1 = true
+              }
+            })
+            if (test1) {
+              setModalMessage('It is recommended to have an explanation for each answer item as well as an explanation and summary for the question. Would you like to continue?')
+              setModalOpen(true)
+            } else {
+              handleFinish();
+            }
+          }
     }
 
     return (
         <>
             {contextHolder}
             <Modal
-                footer={[
-                    <Button
-                        key="back"
-                        onClick={() => setModalOpen(false)}>
-                        Close
-                    </Button>,
-                ]}
-                onOk={() => setModalOpen(false)}
+                onOk={handleFinish}
                 onCancel={() => setModalOpen(false)}
                 open={modalOpen}
-                title={modalTitle}>
+                title='Hold on...'>
                 {modalMessage}
             </Modal>
             <Form
@@ -109,16 +91,32 @@ export default function QuestionForm({ questionId, isNew }: QuestionFormProps) {
                 onFinish={validate}
                 name="new_question">
                 <Form.Item
-            hasFeedback
+                    hasFeedback
                     initialValue=""
                     label="Stem"
                     name="stem"
                     rules={[{ required: true, message: 'Question stem cannot be empty.' }]}>
                     <Input.TextArea />
                 </Form.Item>
-                <Form.Item initialValue={[]} label="Choices">
-                    <Form.List name="choices">
-                        {(fields, { add, remove }) => (
+                <Form.Item label="Choices">
+                    <Form.List
+                        initialValue={[]}
+                        name="choices"
+                        rules={[
+                          {
+                            validator: async (_, choices) => {
+                              if (choices.length < 2) {
+                                return Promise.reject(new Error('At least 2 choices required.'));
+                              }
+                              if (choices.findIndex((i: any) => i.isChecked === true) === -1) {
+                                return Promise.reject(new Error('At least one correct choice required.'));
+                              }
+                            },
+                            // @ts-ignore
+                            validateTrigger: "onSubmit"
+                          }
+                        ]}>
+                        {(fields, { add, remove }, { errors }) => (
                             <>
                                 {fields.map(({ key, name, ...restField }) => (
                                     <Flex
@@ -129,10 +127,8 @@ export default function QuestionForm({ questionId, isNew }: QuestionFormProps) {
                                             {...restField}
                                             initialValue={false}
                                             name={[name, 'isChecked']}
-                                            valuePropName="checked"
-                                            >
-                                            <Checkbox
-                                            />
+                                            valuePropName="checked">
+                                            <Checkbox />
                                         </Form.Item>
                                         <Form.Item
                                             {...restField}
@@ -175,8 +171,10 @@ export default function QuestionForm({ questionId, isNew }: QuestionFormProps) {
                                 <Form.Item className="flex justify-center">
                                     <Button onClick={() => add()}>Add choice</Button>
                                 </Form.Item>
+                                <Form.ErrorList errors={errors} />
                             </>
-                        )}
+              )}
+              
                     </Form.List>
                 </Form.Item>
                 <Form.Item
